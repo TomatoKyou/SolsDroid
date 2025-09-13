@@ -1,0 +1,27 @@
+# Python キャッシュや一時ファイル
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 環境ファイル
+.env
+*.env
+webhook.txt
+server.txt
+*.log
+
+# pip が作る環境用ファイル
+.venv/
+venv/
+ENV/
+
+# Termux や Linux 特有の不要ファイル
+*.swp
+*.swo
+.DS_Store
+
+# 実行結果やバックアップ
+nohup.out
+*.bak
+
