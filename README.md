@@ -4,8 +4,7 @@
 - Biome変更通知
 - 設定したプライベートサーバーのURLを送信
 
-
-- 動作環境 Android11以降のPlayStore、またはF-droidのTermux
+## 動作環境 Android11以降のPlayStore、またはF-droidのTermux
  - git (cloneに使用)
  - python3
  - android-tools (adb)
@@ -34,7 +33,7 @@ adb devicesを実行してemulator-5554（環境によって変わる可能性�
 （注意）この手順は2回以上失敗する可能性があります。原因はおそらくadbそのものにあるため、修正ができません; ;
 この手順は端末を再起動後、もしくは時間が経過してadb devicesを実行しても何も表示されなかった場合再度行う必要があります。
 
-マクロを起動
+## マクロを起動
 bash run.shを実行して Enter Discord Webhook URL:　に使用するWebhookのURLを入力、 Robloxを起動してプライベートサーバーのURLをコピー、そのままプライベートサーバーに参加してください。
 完全にゲームが起動したら素早くTermuxの画面に切り替えて、コピーしたURLをEnter Private Server URL:　にペーストしてEnter、サーバーから切断される前にRobloxに戻ってください。
 Discordを確認して正常に動作していれば成功です、Androidがプロセスをメモリ圧迫などの理由で終了したり、ワイヤレスデバッグが切断されることがない限り永続的に動作します。
@@ -45,3 +44,4 @@ Discordにメッセージが送信されていれば、その後クラッシュ�
 ## 注意点
 ワイヤレスデバッグはセキュリティリスクがあります！ 公共Wifiでは絶対に有効化しないでください。信頼できる人のみがアクセスするWifiを推奨します。
 このプロジェクトは開発初期段階です。Discordで手伝ってくれる人を募集しています。 https://discord.gg/ayuVgCKC98
+
