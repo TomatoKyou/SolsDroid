@@ -86,7 +86,7 @@ discord_settings() {
                 echo "現在の設定: $NOTIFY_ONLY_SPECIAL_BIOME"
                 read -p "変更しますか？(y/n) " yn
                 if [[ $yn =~ ^[Yy]$ ]]; then
-                    read -p "無効化しますか？(y/n) " yn2
+                    read -p "有効化=y 無効化=n (y/n)" yn2
                     if [[ $yn2 =~ ^[Yy]$ ]]; then
                         NOTIFY_ONLY_SPECIAL_BIOME=true
                     else
