@@ -12,7 +12,7 @@ SERVER_FILE = "./server.txt"
 
 # txt ファイルが無い or 空ならエラーで停止
 if not os.path.isfile(WEBHOOK_FILE) or os.path.getsize(WEBHOOK_FILE) == 0:
-    print("❌ webhook.txt が存在しないか中身が空です。")
+    print("[ERROR] webhook.txt が存在しないか中身が空です。")
     print("   先に settings.sh を実行して設定してください。")
     sys.exit(1)
 else:
@@ -20,7 +20,7 @@ else:
         WEBHOOK_URL = f.read().strip()
 
 if not os.path.isfile(SERVER_FILE) or os.path.getsize(SERVER_FILE) == 0:
-    print("❌ server.txt が存在しないか中身が空です。")
+    print("[ERROR] server.txt が存在しないか中身が空です。")
     print("   先に settings.sh を実行して設定してください。")
     sys.exit(1)
 else:
