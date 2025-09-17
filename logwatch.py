@@ -5,10 +5,11 @@ import requests
 import json
 import sys
 
-print("=== logwatch.py (完全版: 状態管理 + Embed改良) start ===")
+print("=== logwatch.py (完全版: 状態管理 + Embed改良 + 通知制御) start ===")
 
 WEBHOOK_FILE = "./webhook.txt"
 SERVER_FILE = "./server.txt"
+CONFIG_FILE = "./config.json"
 
 # txt ファイルが無い or 空ならエラーで停止
 if not os.path.isfile(WEBHOOK_FILE) or os.path.getsize(WEBHOOK_FILE) == 0:
@@ -29,6 +30,19 @@ else:
 
 print(f"[INFO] あなたの現在のWebhookURL: {WEBHOOK_URL}")
 print(f"[INFO] あなたの現在のPSURL: {PRIVATE_SERVER_URL}")
+
+# config.json 読み込み（無ければデフォルト値）
+if os.path.isfile(CONFIG_FILE):
+    try:
+        with open(CONFIG_FILE, "r") as f:
+            config = json.load(f)
+    except Exception:
+        config = {}
+else:
+    config = {}
+
+NOTIFY_ONLY_SPECIAL_BIOME = config.get("notify_only_special_biome", False)
+AURA_MIN_COUNT = config.get("aura_min_count", 0)  # 今後使用予定
 
 # adb logcat
 adb_cmd = ["adb", "logcat", "-v", "brief"]
@@ -73,32 +87,36 @@ try:
             large_image = data_field.get("largeImage") or {}
             biome = large_image.get("hoverText", "")
 
-            # オーラ装備通知
+            # -----------------------------
+            # Aura equipped 通知（常に送信）
+            # -----------------------------
             if state != last_state:
                 payload = {
                     "embeds": [{
                         "title": "Aura equipped",
-                        "fields": [
-                            {"name": "Equipped Aura", "value": state, "inline": False}
-                        ],
+                        "fields": [{"name": "Equipped Aura", "value": state, "inline": False}],
                         "footer": {"text": "SolsDroid made by TomatoKurui"}
                     }]
                 }
-                # 特定バイオームで @everyone
+                # GLITCHED / DREAMSPACE の場合のみ @everyone
                 if biome in ["GLITCHED", "DREAMSPACE"]:
                     payload["content"] = "@everyone"
                 send_webhook(payload)
                 last_state = state
 
-            # バイオーム終了通知
+            # -----------------------------
+            # バイオーム通知制御
+            # -----------------------------
+            if NOTIFY_ONLY_SPECIAL_BIOME and biome not in ["GLITCHED", "DREAMSPACE"]:
+                continue  # GLITCHED / DREAMSPACE 以外は通知スキップ
+
             if biome != last_biome:
+                # バイオーム終了通知
                 if last_biome:
                     payload_end = {
                         "embeds": [{
                             "title": "Biome ended",
-                            "fields": [
-                                {"name": "Ended Biome", "value": last_biome, "inline": False}
-                            ],
+                            "fields": [{"name": "Ended Biome", "value": last_biome, "inline": False}],
                             "footer": {"text": "SolsDroid made by TomatoKurui"}
                         }]
                     }
