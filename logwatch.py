@@ -3,56 +3,40 @@ import os
 import subprocess
 import requests
 import json
-import sys
 
-print("=== logwatch.py (完全版: 状態管理 + Embed改良 + config.txt制御) start ===")
+print("=== logwatch.py (完全版: 状態管理 + Embed改良) start ===")
 
+# 初回入力をチェック
 WEBHOOK_FILE = "./webhook.txt"
 SERVER_FILE = "./server.txt"
-CONFIG_FILE = "./config.txt"
 
-# txt ファイルが無い or 空ならエラーで停止
-if not os.path.isfile(WEBHOOK_FILE) or os.path.getsize(WEBHOOK_FILE) == 0:
-    print("[ERROR] webhook.txt が存在しないか中身が空です。")
-    print("   先に settings.sh を実行して設定してください。")
-    sys.exit(1)
-else:
+if os.path.isfile(WEBHOOK_FILE):
     with open(WEBHOOK_FILE, "r") as f:
         WEBHOOK_URL = f.read().strip()
-
-if not os.path.isfile(SERVER_FILE) or os.path.getsize(SERVER_FILE) == 0:
-    print("[ERROR] server.txt が存在しないか中身が空です。")
-    print("   先に settings.sh を実行して設定してください。")
-    sys.exit(1)
 else:
+    WEBHOOK_URL = input("Enter Discord Webhook URL: ").strip()
+    with open(WEBHOOK_FILE, "w") as f:
+        f.write(WEBHOOK_URL)
+
+if os.path.isfile(SERVER_FILE):
     with open(SERVER_FILE, "r") as f:
         PRIVATE_SERVER_URL = f.read().strip()
+else:
+    PRIVATE_SERVER_URL = input("Enter Private Server URL: ").strip()
+    with open(SERVER_FILE, "w") as f:
+        f.write(PRIVATE_SERVER_URL)
 
-# config.txt 読み込み
-config = {}
-if os.path.isfile(CONFIG_FILE):
-    with open(CONFIG_FILE) as f:
-        for line in f:
-            if "=" in line:
-                key, val = line.strip().split("=", 1)
-                config[key] = val
-
-NOTIFY_ONLY_SPECIAL_BIOME = config.get("notify_only_special_biome", "false") == "true"
-AURA_MIN_COUNT = int(config.get("aura_min_count", 0))
-
-print(f"[INFO] WebhookURL: {WEBHOOK_URL}")
-print(f"[INFO] PrivateServerURL: {PRIVATE_SERVER_URL}")
-print(f"[INFO] notify_only_special_biome: {NOTIFY_ONLY_SPECIAL_BIOME}")
-print(f"[INFO] aura_min_count: {AURA_MIN_COUNT}")
+print(f"[DEBUG] Using Discord Webhook: {WEBHOOK_URL}")
+print(f"[DEBUG] Using Private Server URL: {PRIVATE_SERVER_URL}")
 
 # adb logcat
 adb_cmd = ["adb", "logcat", "-v", "brief"]
-print(f"[INFO] ADBコマンドを実行しています: {' '.join(adb_cmd)}")
+print(f"[DEBUG] Running adb command: {' '.join(adb_cmd)}")
 
 try:
     process = subprocess.Popen(adb_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 except Exception as e:
-    print(f"[ERROR] ADBを開始するのに失敗しました！setup.shは実行しましたか？: {e}")
+    print(f"[ERROR] Failed to start adb: {e}")
     exit(1)
 
 last_state = None
@@ -61,16 +45,16 @@ last_biome = None
 def send_webhook(payload):
     try:
         response = requests.post(WEBHOOK_URL, json=payload)
-        print(f"[INFO] Webhookが応答しました: {response.status_code}")
+        print(f"[DEBUG] Webhook response: {response.status_code}")
     except Exception as e:
-        print(f"[ERROR] Webhookの送信に失敗しました: {e}")
+        print(f"[ERROR] Failed to send webhook: {e}")
 
 try:
     for raw_line in process.stdout:
         try:
             line = raw_line.decode("utf-8", errors="replace").strip()
         except Exception as e:
-            print(f"[ERROR] 行をデコードできませんでした: {e}")
+            print(f"[ERROR] Failed to decode line: {e}")
             continue
 
         if not line or "[BloxstrapRPC]" not in line:
@@ -88,10 +72,6 @@ try:
             large_image = data_field.get("largeImage") or {}
             biome = large_image.get("hoverText", "")
 
-            # 限定バイオーム以外の通知スキップ
-            if NOTIFY_ONLY_SPECIAL_BIOME and biome not in ["GLITCHED", "DREAMSPACE"]:
-                continue
-
             # オーラ装備通知
             if state != last_state:
                 payload = {
@@ -103,6 +83,7 @@ try:
                         "footer": {"text": "SolsDroid made by TomatoKurui"}
                     }]
                 }
+                # 特定バイオームで @everyone
                 if biome in ["GLITCHED", "DREAMSPACE"]:
                     payload["content"] = "@everyone"
                 send_webhook(payload)
@@ -137,12 +118,12 @@ try:
                 last_biome = biome
 
         except Exception as e:
-            print(f"[ERROR] JSONパースに失敗: {e}")
+            print(f"[ERROR] Failed to parse line JSON: {e}")
 
 except KeyboardInterrupt:
-    print("\n[INFO] SolsDroidはユーザーによって終了されました")
+    print("\n[INFO] logwatch.py terminated by user")
     process.terminate()
 except Exception as e:
-    print(f"[ERROR] 重大なエラーが発生しました: {e}")
+    print(f"[ERROR] Unexpected error: {e}")
     process.terminate()
 
