@@ -4,7 +4,7 @@ import subprocess
 import requests
 import json
 
-print("=== logwatch.py (完全版: 状態管理 + Embed改良) start ===")
+print("===SolsDroid Beta1.0.0を開始しました！===")
 
 # 初回入力をチェック
 WEBHOOK_FILE = "./webhook.txt"
@@ -26,17 +26,17 @@ else:
     with open(SERVER_FILE, "w") as f:
         f.write(PRIVATE_SERVER_URL)
 
-print(f"[DEBUG] Using Discord Webhook: {WEBHOOK_URL}")
-print(f"[DEBUG] Using Private Server URL: {PRIVATE_SERVER_URL}")
+print(f"[INFO] 使用中のDiscordWebhookURL: {WEBHOOK_URL}")
+print(f"[INFO] 使用中のプライベートサーバーURL: {PRIVATE_SERVER_URL}")
 
 # adb logcat
 adb_cmd = ["adb", "logcat", "-v", "brief"]
-print(f"[DEBUG] Running adb command: {' '.join(adb_cmd)}")
+print(f"[INFO] ADBコマンドを実行しています: {' '.join(adb_cmd)}")
 
 try:
     process = subprocess.Popen(adb_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 except Exception as e:
-    print(f"[ERROR] Failed to start adb: {e}")
+    print(f"[INFO] ADBの開始に失敗しました、setup.shは実行しましたか？: {e}")
     exit(1)
 
 last_state = None
@@ -45,16 +45,16 @@ last_biome = None
 def send_webhook(payload):
     try:
         response = requests.post(WEBHOOK_URL, json=payload)
-        print(f"[DEBUG] Webhook response: {response.status_code}")
+        print(f"[DEBUG] Webhookが応答しました: {response.status_code}")
     except Exception as e:
-        print(f"[ERROR] Failed to send webhook: {e}")
+        print(f"[ERROR] Webhookの送信に失敗しました: {e}")
 
 try:
     for raw_line in process.stdout:
         try:
             line = raw_line.decode("utf-8", errors="replace").strip()
         except Exception as e:
-            print(f"[ERROR] Failed to decode line: {e}")
+            print(f"[ERROR] 行のデコードに失敗しました: {e}")
             continue
 
         if not line or "[BloxstrapRPC]" not in line:
@@ -118,10 +118,10 @@ try:
                 last_biome = biome
 
         except Exception as e:
-            print(f"[ERROR] Failed to parse line JSON: {e}")
+            print(f"[ERROR] JSONの読み取りに失敗しました: {e}")
 
 except KeyboardInterrupt:
-    print("\n[INFO] logwatch.py terminated by user")
+    print("\n[INFO] logwatch.pyはユーザーによって終了されました")
     process.terminate()
 except Exception as e:
     print(f"[ERROR] Unexpected error: {e}")
