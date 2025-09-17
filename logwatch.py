@@ -3,40 +3,41 @@ import os
 import subprocess
 import requests
 import json
+import sys
 
 print("=== logwatch.py (完全版: 状態管理 + Embed改良) start ===")
 
-# 初回入力をチェック
 WEBHOOK_FILE = "./webhook.txt"
 SERVER_FILE = "./server.txt"
 
-if os.path.isfile(WEBHOOK_FILE):
+# txt ファイルが無い or 空ならエラーで停止
+if not os.path.isfile(WEBHOOK_FILE) or os.path.getsize(WEBHOOK_FILE) == 0:
+    print("❌ webhook.txt が存在しないか中身が空です。")
+    print("   先に settings.sh を実行して設定してください。")
+    sys.exit(1)
+else:
     with open(WEBHOOK_FILE, "r") as f:
         WEBHOOK_URL = f.read().strip()
-else:
-    WEBHOOK_URL = input("Enter Discord Webhook URL: ").strip()
-    with open(WEBHOOK_FILE, "w") as f:
-        f.write(WEBHOOK_URL)
 
-if os.path.isfile(SERVER_FILE):
+if not os.path.isfile(SERVER_FILE) or os.path.getsize(SERVER_FILE) == 0:
+    print("❌ server.txt が存在しないか中身が空です。")
+    print("   先に settings.sh を実行して設定してください。")
+    sys.exit(1)
+else:
     with open(SERVER_FILE, "r") as f:
         PRIVATE_SERVER_URL = f.read().strip()
-else:
-    PRIVATE_SERVER_URL = input("Enter Private Server URL: ").strip()
-    with open(SERVER_FILE, "w") as f:
-        f.write(PRIVATE_SERVER_URL)
 
-print(f"[DEBUG] Using Discord Webhook: {WEBHOOK_URL}")
-print(f"[DEBUG] Using Private Server URL: {PRIVATE_SERVER_URL}")
+print(f"[INFO] あなたの現在のWebhookURL: {WEBHOOK_URL}")
+print(f"[INFO] あなたの現在のPSURL: {PRIVATE_SERVER_URL}")
 
 # adb logcat
 adb_cmd = ["adb", "logcat", "-v", "brief"]
-print(f"[DEBUG] Running adb command: {' '.join(adb_cmd)}")
+print(f"[INFO] ADBコマンドを実行しています: {' '.join(adb_cmd)}")
 
 try:
     process = subprocess.Popen(adb_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 except Exception as e:
-    print(f"[ERROR] Failed to start adb: {e}")
+    print(f"[ERROR] ADBを開始するのに失敗しました！setup.shは実行しましたか？: {e}")
     exit(1)
 
 last_state = None
@@ -45,16 +46,16 @@ last_biome = None
 def send_webhook(payload):
     try:
         response = requests.post(WEBHOOK_URL, json=payload)
-        print(f"[DEBUG] Webhook response: {response.status_code}")
+        print(f"[INFO] Webhookが応答しました: {response.status_code}")
     except Exception as e:
-        print(f"[ERROR] Failed to send webhook: {e}")
+        print(f"[ERROR] Webhookの送信に失敗しました: {e}")
 
 try:
     for raw_line in process.stdout:
         try:
             line = raw_line.decode("utf-8", errors="replace").strip()
         except Exception as e:
-            print(f"[ERROR] Failed to decode line: {e}")
+            print(f"[ERROR] 行をデコードするのに失敗しました、このエラーが発生した場合Discordで開発者に連絡してください: {e}")
             continue
 
         if not line or "[BloxstrapRPC]" not in line:
@@ -118,12 +119,11 @@ try:
                 last_biome = biome
 
         except Exception as e:
-            print(f"[ERROR] Failed to parse line JSON: {e}")
+            print(f"[ERROR] JSONコンテンツを見つけられませんでした: {e}")
 
 except KeyboardInterrupt:
-    print("\n[INFO] logwatch.py terminated by user")
+    print("\n[INFO] SolsDroidはユーザーによって終了されました")
     process.terminate()
 except Exception as e:
-    print(f"[ERROR] Unexpected error: {e}")
+    print(f"[ERROR] 重大なエラーが発生しました: {e}")
     process.terminate()
-
