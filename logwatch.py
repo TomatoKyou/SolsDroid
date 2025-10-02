@@ -4,11 +4,12 @@ import subprocess
 import requests
 import json
 
-print("===SolsDroid Beta1.0.0を開始しました！===")
+print("===SolsDroid Beta1.1.0を開始しました！===")
 
 # 初回入力をチェック
 WEBHOOK_FILE = "./webhook.txt"
 SERVER_FILE = "./server.txt"
+BIOME_FILE = "./biome.json"
 
 if os.path.isfile(WEBHOOK_FILE):
     with open(WEBHOOK_FILE, "r") as f:
@@ -25,6 +26,14 @@ else:
     PRIVATE_SERVER_URL = input("Enter Private Server URL: ").strip()
     with open(SERVER_FILE, "w") as f:
         f.write(PRIVATE_SERVER_URL)
+
+# biome.json 読み込み
+if os.path.isfile(BIOME_FILE):
+    with open(BIOME_FILE, "r", encoding="utf-8") as f:
+        BIOME_DATA = json.load(f)
+else:
+    BIOME_DATA = {}
+    print("[WARN] biome.json が見つかりませんでした")
 
 print(f"[INFO] 使用中のDiscordWebhookURL: {WEBHOOK_URL}")
 print(f"[INFO] 使用中のプライベートサーバーURL: {PRIVATE_SERVER_URL}")
@@ -80,7 +89,7 @@ try:
                         "fields": [
                             {"name": "Equipped Aura", "value": state, "inline": False}
                         ],
-                        "footer": {"text": "SolsDroid made by TomatoKurui"}
+                        "footer": {"text": "SolsDroid | Beta v1.1.0"}
                     }]
                 }
                 # 特定バイオームで @everyone
@@ -89,31 +98,40 @@ try:
                 send_webhook(payload)
                 last_state = state
 
-            # バイオーム終了通知
+            # バイオーム終了通知 ＆ 開始通知
             if biome != last_biome:
                 if last_biome:
+                    # Biome Ended
+                    biome_info_end = BIOME_DATA.get(last_biome, {})
+                    embed_colour_end = int(biome_info_end.get("colour", "#ffffff").replace("#", ""), 16)
+
                     payload_end = {
                         "embeds": [{
-                            "title": "Biome ended",
-                            "fields": [
-                                {"name": "Ended Biome", "value": last_biome, "inline": False}
-                            ],
-                            "footer": {"text": "SolsDroid made by TomatoKurui"}
+                            "title": f"Biome Ended - {last_biome}",
+                            "footer": {"text": "SolsDroid | Beta v1.1.0"},
+                            "color": embed_colour_end
                         }]
                     }
                     send_webhook(payload_end)
 
-                # バイオーム開始通知
+                # Biome Started
+                biome_info_start = BIOME_DATA.get(biome, {})
+                embed_colour_start = int(biome_info_start.get("colour", "#ffffff").replace("#", ""), 16)
+                embed_img_start = biome_info_start.get("img_url", None)
+
                 payload_start = {
                     "embeds": [{
-                        "title": "New biome started",
+                        "title": f"Biome Started - {biome}",
                         "fields": [
-                            {"name": "New Biome", "value": biome, "inline": False},
                             {"name": "Private Server", "value": PRIVATE_SERVER_URL, "inline": False}
                         ],
-                        "footer": {"text": "SolsDroid made by TomatoKurui"}
+                        "footer": {"text": "SolsDroid | Beta v1.1.0"},
+                        "color": embed_colour_start
                     }]
                 }
+                if embed_img_start:
+                    payload_start["embeds"][0]["thumbnail"] = {"url": embed_img_start}
+
                 send_webhook(payload_start)
                 last_biome = biome
 
@@ -126,4 +144,3 @@ except KeyboardInterrupt:
 except Exception as e:
     print(f"[ERROR] Unexpected error: {e}")
     process.terminate()
-
