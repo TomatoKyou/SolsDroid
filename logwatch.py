@@ -114,10 +114,9 @@ try:
 
                 payload_aura = {
                     "embeds": [{
-                        "title": f"Aura Equipped - {state}",
+                        "title": f"# Aura Equipped - {state}",
                         "fields": [
-                            {"name": "Rarity", "value": str(rarity), "inline": True},
-                        ],
+                            {"name": f"# 1 in {rarity}", "value":"⠀"}],
                         "color": embed_colour,
                         "footer": {"text": "SolsDroid | Beta v1.1.0"}
                     }]
