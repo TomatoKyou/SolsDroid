@@ -115,7 +115,7 @@ try:
 
                 payload_aura = {
                     "embeds": [{
-                        "title": f"# Aura Equipped - {state}",
+                        "title": f"Aura Equipped - {state}",
                         "fields": [
                             {"name": "Rarity:", "value": f"{formatted_rarity}", "inline": True},
                         ],
