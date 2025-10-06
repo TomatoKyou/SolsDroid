@@ -68,7 +68,6 @@ def send_webhook(payload):
         print(f"[ERROR] Webhookの送信に失敗しました: {e}")
 
 def get_aura_colour(rarity: int) -> int:
-    """rarityに応じてDiscord embedカラーを返す"""
     if rarity >= 100_000_000:
         return int("ff0000", 16)  # 赤
     elif rarity >= 10_000_000:
@@ -97,12 +96,17 @@ try:
             data = json.loads(json_str)
             data_field = data.get("data") or {}
 
-            state = data_field.get("state", "")
+            raw_state = data_field.get("state", "")
+            if raw_state.startswith("Equipped\"") and raw_state.endswith("\""):
+                state = raw_state[len("Equipped\""):-1]
+            else:
+                state = raw_state
+
             large_image = data_field.get("largeImage") or {}
             biome = large_image.get("hoverText", "")
 
             # オーラ装備通知
-            if state != last_state and state:
+            if state and state != last_state:
                 aura_info = AURA_DATA.get(state, {})
                 rarity = aura_info.get("rarity", 0)
                 embed_colour = get_aura_colour(rarity)
@@ -166,3 +170,4 @@ except KeyboardInterrupt:
 except Exception as e:
     print(f"[ERROR] Unexpected error: {e}")
     process.terminate()
+    
