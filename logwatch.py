@@ -97,11 +97,12 @@ try:
             data_field = data.get("data") or {}
 
             raw_state = data_field.get("state", "")
-            if raw_state.startswith("Equipped\"") and raw_state.endswith("\""):
-                state = raw_state[len("Equipped\""):-1]
+            
+            if raw_state.startswith("Equipped "):
+                state = raw_state[len("Equipped "):].strip('"')
             else:
                 state = raw_state
-
+                
             large_image = data_field.get("largeImage") or {}
             biome = large_image.get("hoverText", "")
 
