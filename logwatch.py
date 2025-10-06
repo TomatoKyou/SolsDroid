@@ -112,6 +112,8 @@ try:
                 rarity = aura_info.get("rarity", 0)
                 formatted_rarity = f"{rarity:,}"
                 embed_colour = get_aura_colour(rarity)
+                if formatted_rarity == "0":
+                    formatted_rarity = "Unknown"
 
                 payload_aura = {
                     "embeds": [{
