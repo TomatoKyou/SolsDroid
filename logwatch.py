@@ -119,7 +119,7 @@ try:
                     "embeds": [{
                         "title": f"Aura Equipped - {state}",
                         "fields": [
-                            {"name": "Rarity:", "value": f"{formatted_rarity}", "inline": True},
+                            {"name": "Rarity:", "value": f"1 in {formatted_rarity}", "inline": True},
                         ],
                         "color": embed_colour,
                         "footer": {"text": "SolsDroid | Beta v1.1.0"}
