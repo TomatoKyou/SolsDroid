@@ -4,7 +4,6 @@ import subprocess
 import requests
 import json
 import sys
-import threading
 
 print("===SolsDroid Beta1.1.0を開始しました！===")
 
@@ -78,15 +77,6 @@ def get_aura_colour(rarity: int) -> int:
         return int("ff69b4", 16)  # ピンク
     else:
         return int("ffffff", 16)  # 白
-
-def input_watcher():
-    while True:
-        user_input = input()
-        if user_input.strip().lower() == "exit":
-            print("exitが入力されたため終了します。")
-            sys.exit(0)
-
-threading.Thread(target=input_watcher, daemon=True).start() # exit監視
 
 try:
     for raw_line in process.stdout:
@@ -182,9 +172,7 @@ except KeyboardInterrupt:
     print("\n[INFO] Ctrl+Cによって終了されました")
     process.terminate()
     process.wait()
-    sys.exit(0)
 except Exception as e:
     print(f"[ERROR] Unexpected error: {e}")
     process.terminate()
     process.wait()
-    sys.exit(1)
