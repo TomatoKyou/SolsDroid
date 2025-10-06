@@ -110,20 +110,21 @@ try:
             if state and state != last_state:
                 aura_info = AURA_DATA.get(state, {})
                 rarity = aura_info.get("rarity", 0)
+                formatted_rarity = f"{rarity:,}"
                 embed_colour = get_aura_colour(rarity)
 
                 payload_aura = {
                     "embeds": [{
                         "title": f"# Aura Equipped - {state}",
                         "fields": [
-                            {"name": f"# 1 in {rarity}", "value":"⠀"}],
+                            {"name": "Rarity:", "value": f"{formatted_rarity}", "inline": True},
+                        ],
                         "color": embed_colour,
                         "footer": {"text": "SolsDroid | Beta v1.1.0"}
                     }]
                 }
                 send_webhook(payload_aura)
                 last_state = state
-
             # バイオーム終了通知 ＆ 開始通知
             if biome != last_biome:
                 if last_biome:
