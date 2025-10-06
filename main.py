@@ -4,6 +4,7 @@ import subprocess
 import requests
 import json
 import sys
+import threading
 
 print("===SolsDroid Beta1.1.0を開始しました！===")
 
