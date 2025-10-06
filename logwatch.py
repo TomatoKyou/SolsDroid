@@ -10,6 +10,7 @@ print("===SolsDroid Beta1.1.0を開始しました！===")
 WEBHOOK_FILE = "./webhook.txt"
 SERVER_FILE = "./server.txt"
 BIOME_FILE = "./biome.json"
+AURA_FILE = "./auras.json"
 
 if os.path.isfile(WEBHOOK_FILE):
     with open(WEBHOOK_FILE, "r") as f:
@@ -35,6 +36,14 @@ else:
     BIOME_DATA = {}
     print("[WARN] biome.json が見つかりませんでした")
 
+# auras.json 読み込み
+if os.path.isfile(AURA_FILE):
+    with open(AURA_FILE, "r", encoding="utf-8") as f:
+        AURA_DATA = json.load(f)
+else:
+    AURA_DATA = {}
+    print("[WARN] auras.json が見つかりませんでした")
+
 print(f"[INFO] 使用中のDiscordWebhookURL: {WEBHOOK_URL}")
 print(f"[INFO] 使用中のプライベートサーバーURL: {PRIVATE_SERVER_URL}")
 
@@ -57,6 +66,17 @@ def send_webhook(payload):
         print(f"[DEBUG] Webhookが応答しました: {response.status_code}")
     except Exception as e:
         print(f"[ERROR] Webhookの送信に失敗しました: {e}")
+
+def get_aura_colour(rarity: int) -> int:
+    """rarityに応じてDiscord embedカラーを返す"""
+    if rarity >= 100_000_000:
+        return int("ff0000", 16)  # 赤
+    elif rarity >= 10_000_000:
+        return int("8000ff", 16)  # 紫と青の中間
+    elif rarity >= 1_000_000:
+        return int("ff69b4", 16)  # ピンク
+    else:
+        return int("ffffff", 16)  # 白
 
 try:
     for raw_line in process.stdout:
@@ -82,20 +102,22 @@ try:
             biome = large_image.get("hoverText", "")
 
             # オーラ装備通知
-            if state != last_state:
-                payload = {
+            if state != last_state and state:
+                aura_info = AURA_DATA.get(state, {})
+                rarity = aura_info.get("rarity", 0)
+                embed_colour = get_aura_colour(rarity)
+
+                payload_aura = {
                     "embeds": [{
-                        "title": "Aura equipped",
+                        "title": f"Aura Equipped - {state}",
                         "fields": [
-                            {"name": "Equipped Aura", "value": state, "inline": False}
+                            {"name": "Rarity", "value": str(rarity), "inline": True},
                         ],
+                        "color": embed_colour,
                         "footer": {"text": "SolsDroid | Beta v1.1.0"}
                     }]
                 }
-                # 特定バイオームで @everyone
-                if biome in ["GLITCHED", "DREAMSPACE"]:
-                    payload["content"] = "@everyone"
-                send_webhook(payload)
+                send_webhook(payload_aura)
                 last_state = state
 
             # バイオーム終了通知 ＆ 開始通知
