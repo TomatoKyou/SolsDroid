@@ -1,2 +1,2 @@
-python logwatch.py
+python main.py
 
