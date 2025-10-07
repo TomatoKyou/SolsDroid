@@ -1,6 +1,63 @@
 #!/bin/bash
 
 PYTHON_SCRIPT="main.py"  # または main.py
+CONFIG_FILE="config.txt"
+
+format_value() {
+  local val="$1"
+  case "$val" in
+    unconfigured)
+      echo "未設定"
+      ;;
+    true)
+      echo "有効"
+      ;;
+    false)
+      echo "無効"
+      ;;
+    *)
+      echo "$val"
+      ;;
+  esac
+}
+
+load_config() {
+  # config.txt を読み込んで環境変数に設定
+  while IFS='= ' read -r key value; do
+    # 空行やコメント行をスキップ
+    [ -z "$key" ] && continue
+    [[ "$key" =~ ^# ]] && continue
+
+    # 余分な空白を削除して変数に代入
+    key=$(echo "$key" | xargs)
+    value=$(echo "$value" | xargs)
+    eval "${key}=\"${value}\""
+  done < "$CONFIG_FILE"
+}
+
+
+config_init() {
+  if [ ! -f "$CONFIG_FILE" ]; then
+    echo "config.txt が存在しません。新規作成します..."
+    {
+      printf "WEBHOOK_URL = unconfigured\n"
+      printf "PRIVATE_SERVER_URL = unconfigured\n"
+      printf "DISCORD_USER_ID = unconfigured\n"
+      printf "MIN_NOTIFY_RARITY = 100000000\n"
+      printf "DONT_NOTIFY_BIOME_WITHOUT_LIMITED = false\n"
+    } > "$CONFIG_FILE"
+  fi
+}
+
+save_config() {
+  {
+    printf "WEBHOOK_URL=%s\n" "$WEBHOOK_URL"
+    printf "PRIVATE_SERVER_URL=%s\n" "$PRIVATE_SERVER_URL"
+    printf "DISCORD_USER_ID=%s\n" "$DISCORD_USER_ID"
+    printf "MIN_NOTIFY_RARITY=%s\n" "$MIN_NOTIFY_RARITY"
+    printf "DONT_NOTIFY_BIOME_WITHOUT_LIMITED=%s\n" "$DONT_NOTIFY_BIOME_WITHOUT_LIMITED"
+  } > "$CONFIG_FILE"
+}
 
 check_adb_connection() {
   local devices_out
@@ -50,6 +107,90 @@ setup_func() {
   read -p "Enterでメニューに戻ります。" dummy
 }
 
+settings_menu() {
+  while :; do
+    clear
+    echo "=== 設定メニュー ==="
+    echo "1. 通知設定"
+    echo "2. 環境設定"
+    echo "3. 戻る"
+    read -p "番号を選んでください: " ssel
+    case "$ssel" in
+      1)
+        notify_settings_menu
+        ;;
+      2)
+        env_settings_menu
+        ;;
+      3)
+        return
+        ;;
+      *)
+        echo "無効な選択です"
+        sleep 1
+        ;;
+    esac
+  done
+}
+
+env_settings_menu() {
+  load_config
+  while :; do
+    clear
+    echo "=== 環境設定 ==="
+    echo "1. DiscordWebhookURL：$(format_value "$WEBHOOK_URL")"
+    echo "2. PrivateServerURL：$(format_value "$PRIVATE_SERVER_URL")"
+    echo "3. あなたのユーザーID：$(format_value "$DISCORD_USER_ID")"
+    echo "4. 戻る"
+    read -p "番号を選んでください: " esel
+    case "$esel" in
+      1)
+        webhook_url_setting
+        ;;
+      2)
+        ps_url_setting
+        ;;
+      3)
+        user_id_setting
+        ;;
+      4)
+        return
+        ;;
+      *)
+        echo "無効な選択です"
+        sleep 1
+        ;;
+    esac
+  done
+}
+
+notify_settings_menu() {
+  load_config
+  while :; do
+    clear
+    echo "=== 通知設定 ==="
+    echo "1. 最低通知レア度：$(format_value "$MIN_NOTIFY_RARITY")"
+    echo "2. 限定バイオーム以外を通知しない：$(format_value "$DONT_NOTIFY_BIOME_WITHOUT_LIMITED")"
+    echo "3. 戻る"
+    read -p "番号を選んでください： " nsel
+    case "$nsel" in
+      1)
+        min_notify_setting
+        ;;
+      2)
+        biome_notify_setting
+        ;;
+      3)
+        return
+        ;;
+      *)
+        echo "無効な選択です"
+        sleep 1
+        ;;
+    esac
+  done
+}
+
 main_menu() {
   while :; do
     clear
@@ -70,6 +211,7 @@ main_menu() {
         fi
         ;;
       2)
+        settings_menu
         ;;
       3)
         setup_func
@@ -86,4 +228,123 @@ main_menu() {
   done
 }
 
+ps_url_setting() {
+    while :; do
+        read -p "新しいPrivateServerURLを入力してください（exitを入力してキャンセル）: " new_psurl
+        if [[ "$new_psurl" == "exit" ]]; then
+            echo "変更をキャンセルしました"
+            sleep 1
+            return
+        fi
+        # 空入力は無視する場合
+        if [[ -z "$new_psurl" ]]; then
+            echo "入力が空です。再入力してください"
+            continue
+        fi
+        PRIVATE_SERVER_URL="$new_psurl"
+        save_config
+        echo "変更を保存しました"
+        sleep 1
+        return
+    done
+}
+
+webhook_url_setting() {
+    while :; do
+        read -p "新しいDiscordWebhookURLを入力してください（exitを入力してキャンセル）: " new_webhookurl
+        if [[ "$new_webhookurl" == "exit" ]]; then
+            echo "変更をキャンセルしました"
+            sleep 1
+            return
+        fi
+        # 空入力は無視する場合
+        if [[ -z "$new_webhookurl" ]]; then
+            echo "入力が空です。再入力してください"
+            continue
+        fi
+        WEBHOOK_URL="$new_webhookurl"
+        save_config
+        echo "変更を保存しました"
+        sleep 1
+        return
+    done
+}
+
+user_id_setting() {
+    while :; do
+        read -p "新しいDiscordUserIDを入力してください（exitを入力してキャンセル）: " new_userid
+        if [[ "$new_userid" == "exit" ]]; then
+            echo "変更をキャンセルしました"
+            sleep 1
+            return
+        fi
+        # 空入力は無視する場合
+        if [[ -z "$new_userid" ]]; then
+            echo "入力が空です。再入力してください"
+            continue
+        fi
+        DISCORD_USER_ID="$new_userid"
+        save_config
+        echo "変更を保存しました"
+        sleep 1
+        return
+    done
+}
+
+min_notify_setting() {
+    while :; do
+        read -p "オーラ装備通知を送信するオーラの最低値を入力してください。（exitを入力してキャンセル）: " new_auramin
+        if [[ "$new_auramin" == "exit" ]]; then
+            echo "変更をキャンセルしました"
+            sleep 1
+            return
+        fi
+        # 空入力は無視する場合
+        if [[ -z "$new_auramin" ]]; then
+            echo "入力が空です。再入力してください"
+            continue
+        fi
+        MIN_NOTIFY_RARITY="$new_auramin"
+        save_config
+        echo "変更を保存しました"
+        sleep 1
+        return
+    done
+}
+
+biome_notify_setting() {
+    while :; do
+        clear
+        echo "1. 有効化"
+        echo "2. 無効化"
+        echo "3. キャンセル"
+        read -p "番号を選んでください: " sel
+        case "$sel" in
+            1)
+                DONT_NOTIFY_BIOME_WITHOUT_LIMITED=true
+                save_config
+                echo "変更を保存しました: 有効"
+                sleep 1
+                return
+                ;;
+            2)
+                DONT_NOTIFY_BIOME_WITHOUT_LIMITED=false
+                save_config
+                echo "変更を保存しました: 無効"
+                sleep 1
+                return
+                ;;
+            3)
+                echo "変更をキャンセルしました"
+                sleep 1
+                return
+                ;;
+            *)
+                echo "無効な選択です。再入力してください。"
+                sleep 1
+                ;;
+        esac
+    done
+}
+config_init
 main_menu
