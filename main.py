@@ -4,31 +4,58 @@ import subprocess
 import requests
 import json
 import sys
+import time
 
 print("===SolsDroid Beta1.1.0を開始しました！===")
 
 # 初回入力をチェック
-WEBHOOK_FILE = "./webhook.txt"
-SERVER_FILE = "./server.txt"
+CONFIG_FILE = "./config.txt"
 BIOME_FILE = "./biome.json"
 AURA_FILE = "./auras.json"
 
-if os.path.isfile(WEBHOOK_FILE):
-    with open(WEBHOOK_FILE, "r") as f:
-        WEBHOOK_URL = f.read().strip()
-else:
-    WEBHOOK_URL = input("Enter Discord Webhook URL: ").strip()
-    with open(WEBHOOK_FILE, "w") as f:
-        f.write(WEBHOOK_URL)
+def load_config():
+    config = {}
+    if not os.path.isfile(CONFIG_FILE):
+        print("[ERROR] config.txt が存在しません。setup.shを実行しましたか？")
+        time.sleep(3)
+        exit(1)
 
-if os.path.isfile(SERVER_FILE):
-    with open(SERVER_FILE, "r") as f:
-        PRIVATE_SERVER_URL = f.read().strip()
-else:
-    PRIVATE_SERVER_URL = input("Enter Private Server URL: ").strip()
-    with open(SERVER_FILE, "w") as f:
-        f.write(PRIVATE_SERVER_URL)
+    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if "=" in line:
+                key, value = line.split("=", 1)
+                config[key.strip()] = value.strip().strip('"')
+    return config
 
+def save_config(config):
+    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+        for key, value in config.items():
+            f.write(f'{key}="{value}"\n')
+    print("[INFO] config.txt を更新しました。")
+
+def ensure_config_values(config):
+    updated = False
+
+    if config.get("WEBHOOK_URL") == "unconfigured":
+        config["WEBHOOK_URL"] = input("Discord Webhook URLを入力してください: ").strip()
+        updated = True
+
+    if config.get("PRIVATE_SERVER_URL") == "unconfigured":
+        config["PRIVATE_SERVER_URL"] = input("Private Server URLを入力してください: ").strip()
+        updated = True
+
+    if config.get("DISCORD_USER_ID") == "unconfigured":
+        config["DISCORD_USER_ID"] = input("あなたのDiscordユーザーIDを入力してください: ").strip()
+        updated = True
+
+    if updated:
+        save_config(config)
+
+    return config
+    
 # biome.json 読み込み
 if os.path.isfile(BIOME_FILE):
     with open(BIOME_FILE, "r", encoding="utf-8") as f:
@@ -45,12 +72,21 @@ else:
     AURA_DATA = {}
     print("[WARN] auras.json が見つかりませんでした")
 
-print(f"[INFO] 使用中のDiscordWebhookURL: {WEBHOOK_URL}")
-print(f"[INFO] 使用中のプライベートサーバーURL: {PRIVATE_SERVER_URL}")
-
 # adb logcat
 adb_cmd = ["adb", "logcat", "-v", "brief"]
 print(f"[INFO] ADBコマンドを実行しています: {' '.join(adb_cmd)}")
+
+config = load_config()
+config = ensure_config_values(config)
+
+WEBHOOK_URL = config.get("WEBHOOK_URL")
+PRIVATE_SERVER_URL = config.get("PRIVATE_SERVER_URL")
+DISCORD_USER_ID = config.get("DISCORD_USER_ID")
+MIN_NOTIFY_RARITY = int(config.get("MIN_NOTIFY_RARITY", 0))
+DONT_NOTIFY_BIOME_WITHOUT_LIMITED = config.get("DONT_NOTIFY_BIOME_WITHOUT_LIMITED", "false").lower() == "true"
+
+print(f"[INFO] 使用中のDiscordWebhookURL: {WEBHOOK_URL}")
+print(f"[INFO] 使用中のプライベートサーバーURL: {PRIVATE_SERVER_URL}")
 
 try:
     process = subprocess.Popen(adb_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -64,7 +100,6 @@ last_biome = None
 def send_webhook(payload):
     try:
         response = requests.post(WEBHOOK_URL, json=payload)
-        print(f"[DEBUG] Webhookが応答しました: {response.status_code}")
     except Exception as e:
         print(f"[ERROR] Webhookの送信に失敗しました: {e}")
 
@@ -88,8 +123,6 @@ try:
 
         if not line or "[BloxstrapRPC]" not in line:
             continue
-
-        print(f"[LOG] {line}")
 
         try:
             json_start = line.index("{")
@@ -126,11 +159,17 @@ try:
                         "footer": {"text": "SolsDroid | Beta v1.1.0"}
                     }]
                 }
+                if rarity >= MIN_NOTIFY_RARITY:
+                    payload_aura["content"] = f"<@{DISCORD_USER_ID}>"                
+                    
                 send_webhook(payload_aura)
                 last_state = state
             # バイオーム終了通知 ＆ 開始通知
             if biome != last_biome:
-                if last_biome:
+                if DONT_NOTIFY_BIOME_WITHOUT_LIMITED:
+                    if biome not in ("GLITCHED", "DREAMSPACE"):
+                        last_biome = biome
+                        continue
                     # Biome Ended
                     biome_info_end = BIOME_DATA.get(last_biome, {})
                     embed_colour_end = int(biome_info_end.get("colour", "#ffffff").replace("#", ""), 16)
