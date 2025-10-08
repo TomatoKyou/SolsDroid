@@ -238,6 +238,7 @@ main_menu() {
       5)
         echo "終了します"
         exit 0
+        ;;
       *)
         echo "無効な選択です"
         sleep 1
