@@ -9,6 +9,7 @@ __pycache__/
 *.env
 webhook.txt
 server.txt
+config.txt
 *.log
 
 # pip が作る環境用ファイル
