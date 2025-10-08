@@ -293,15 +293,18 @@ user_id_setting() {
 
 min_notify_setting() {
     while :; do
-        read -p "オーラ装備通知を送信するオーラの最低値を入力してください。（exitを入力してキャンセル）: " new_auramin
+        read -p "オーラ装備通知を送信するオーラの最低値を入力してください。（exitでキャンセル）: " new_auramin
         if [[ "$new_auramin" == "exit" ]]; then
             echo "変更をキャンセルしました"
             sleep 1
             return
         fi
-        # 空入力は無視する場合
         if [[ -z "$new_auramin" ]]; then
             echo "入力が空です。再入力してください"
+            continue
+        fi
+        if ! [[ "$new_auramin" =~ ^[0-9]+$ ]]; then
+            echo "数字のみを入力してください"
             continue
         fi
         MIN_NOTIFY_RARITY="$new_auramin"
