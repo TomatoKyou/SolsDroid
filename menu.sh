@@ -191,6 +191,21 @@ notify_settings_menu() {
   done
 }
 
+adb_pairing() {
+    echo "=== ADB ペアリング ==="
+    read -p "ペアリング用ポート番号を入力してください (例: 37451): " pair_port
+    if [[ -z "$pair_port" ]]; then
+        echo "ポート番号が入力されませんでした。キャンセルします。"
+        sleep 1
+        return
+    fi
+    
+    adb pair localhost:$pair_port
+
+    echo "[INFO] ペアリング処理が終了しました。メニューに戻ります..."
+    sleep 1
+}
+
 main_menu() {
   while :; do
     clear
@@ -199,7 +214,8 @@ main_menu() {
     echo "1. マクロを実行"
     echo "2. 設定"
     echo "3. セットアップ"
-    echo "4. 終了"
+    echo "4. 初回ペアリング"
+    echo "5. 終了"
     read -p "番号を選んでください: " sel
     case "$sel" in
       1)
@@ -217,9 +233,11 @@ main_menu() {
         setup_func
         ;;
       4)
+        adb_pairing
+        ;;
+      5)
         echo "終了します"
         exit 0
-        ;;
       *)
         echo "無効な選択です"
         sleep 1
