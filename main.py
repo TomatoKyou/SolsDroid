@@ -142,8 +142,10 @@ try:
 
             # オーラ装備通知
             if state and state != last_state:
-                aura_info = AURA_DATA.get(state, {})
+                state_lower = state.lower()
+                aura_info = AURA_DATA.get(state_lower, {})
                 rarity = aura_info.get("rarity", 0)
+                aura_thumbnail = aura_info.get("img_url")
                 formatted_rarity = f"{rarity:,}"
                 embed_colour = get_aura_colour(rarity)
                 if formatted_rarity == "0":
@@ -152,6 +154,7 @@ try:
                 payload_aura = {
                     "embeds": [{
                         "title": f"Aura Equipped - {state}",
+                        "thumbnail": {"url": aura_thumbnail},
                         "fields": [
                             {"name": "Rarity:", "value": f"1 in {formatted_rarity}", "inline": True},
                         ],
