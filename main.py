@@ -176,10 +176,12 @@ try:
                     # Biome Ended
                     biome_info_end = BIOME_DATA.get(last_biome, {})
                     embed_colour_end = int(biome_info_end.get("colour", "#ffffff").replace("#", ""), 16)
+                    biome_end_time = int(time.time())
 
                     payload_end = {
                         "embeds": [{
                             "title": f"Biome Ended - {last_biome}",
+                            "description": f"**<t:{biome_end_time}:T>** (**<t:{biome_end_time}:R>**)",
                             "footer": {"text": "SolsDroid | Beta v1.1.0"},
                             "color": embed_colour_end
                         }]
@@ -190,10 +192,12 @@ try:
                 biome_info_start = BIOME_DATA.get(biome, {})
                 embed_colour_start = int(biome_info_start.get("colour", "#ffffff").replace("#", ""), 16)
                 embed_img_start = biome_info_start.get("img_url", None)
+                biome_start_time = int(time.time())
 
                 payload_start = {
                     "embeds": [{
                         "title": f"Biome Started - {biome}",
+                        "description": f"**<t:{biome_start_time}:T>** (**<t:{biome_start_time}:R>**)",
                         "fields": [
                             {"name": "Private Server", "value": PRIVATE_SERVER_URL, "inline": False}
                         ],
