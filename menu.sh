@@ -215,7 +215,8 @@ main_menu() {
     echo "2. 設定"
     echo "3. セットアップ"
     echo "4. 初回ペアリング"
-    echo "5. 終了"
+    echo "5. アップデート"
+    echo "6. 終了"
     read -p "番号を選んでください: " sel
     case "$sel" in
       1)
@@ -236,6 +237,9 @@ main_menu() {
         adb_pairing
         ;;
       5)
+        git pull origin main
+        ;;
+      6)
         echo "終了します"
         exit 0
         ;;
