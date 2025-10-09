@@ -237,7 +237,13 @@ main_menu() {
         adb_pairing
         ;;
       5)
-        git pull origin main
+        branch_output=$(git branch --show-current)
+        if [ -z "$branch_output" ]; then
+          echo "現在のブランチを取得できませんでした。"
+          exit 1
+        fi
+        git pull origin "$branch_output"
+        echo "SolsDroidは最新状態になりました！"
         ;;
       6)
         echo "終了します"
