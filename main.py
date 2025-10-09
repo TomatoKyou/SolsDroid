@@ -6,9 +6,9 @@ import json
 import sys
 import time
 
-print("===SolsDroid Beta1.1.0を開始しました！===")
+print("=== Starting SolsDroid Beta 1.0.0 ===")
 
-# 初回入力をチェック
+# Initial input check
 CONFIG_FILE = "./config.txt"
 BIOME_FILE = "./biome.json"
 AURA_FILE = "./auras.json"
@@ -16,7 +16,7 @@ AURA_FILE = "./auras.json"
 def load_config():
     config = {}
     if not os.path.isfile(CONFIG_FILE):
-        print("[ERROR] config.txt が存在しません。setup.shを実行しましたか？")
+        print("[ERROR] config.txt not found. Did you run setup.sh?")
         time.sleep(3)
         exit(1)
 
@@ -34,21 +34,21 @@ def save_config(config):
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
         for key, value in config.items():
             f.write(f'{key}="{value}"\n')
-    print("[INFO] config.txt を更新しました。")
+    print("[INFO] config.txt has been updated.")
 
 def ensure_config_values(config):
     updated = False
 
     if config.get("WEBHOOK_URL") == "unconfigured":
-        config["WEBHOOK_URL"] = input("Discord Webhook URLを入力してください: ").strip()
+        config["WEBHOOK_URL"] = input("Enter your Discord Webhook URL: ").strip()
         updated = True
 
     if config.get("PRIVATE_SERVER_URL") == "unconfigured":
-        config["PRIVATE_SERVER_URL"] = input("Private Server URLを入力してください: ").strip()
+        config["PRIVATE_SERVER_URL"] = input("Enter your Private Server URL: ").strip()
         updated = True
 
     if config.get("DISCORD_USER_ID") == "unconfigured":
-        config["DISCORD_USER_ID"] = input("あなたのDiscordユーザーIDを入力してください: ").strip()
+        config["DISCORD_USER_ID"] = input("Enter your Discord User ID: ").strip()
         updated = True
 
     if updated:
@@ -56,25 +56,25 @@ def ensure_config_values(config):
 
     return config
     
-# biome.json 読み込み
+# Load biome.json
 if os.path.isfile(BIOME_FILE):
     with open(BIOME_FILE, "r", encoding="utf-8") as f:
         BIOME_DATA = json.load(f)
 else:
     BIOME_DATA = {}
-    print("[WARN] biome.json が見つかりませんでした")
+    print("[WARN] biome.json not found.")
 
-# auras.json 読み込み
+# Load auras.json
 if os.path.isfile(AURA_FILE):
     with open(AURA_FILE, "r", encoding="utf-8") as f:
         AURA_DATA = json.load(f)
 else:
     AURA_DATA = {}
-    print("[WARN] auras.json が見つかりませんでした")
+    print("[WARN] auras.json not found.")
 
 # adb logcat
 adb_cmd = ["adb", "logcat", "-v", "brief"]
-print(f"[INFO] ADBコマンドを実行しています: {' '.join(adb_cmd)}")
+print(f"[INFO] Running ADB command: {' '.join(adb_cmd)}")
 
 config = load_config()
 config = ensure_config_values(config)
@@ -85,13 +85,13 @@ DISCORD_USER_ID = config.get("DISCORD_USER_ID")
 MIN_NOTIFY_RARITY = int(config.get("MIN_NOTIFY_RARITY", 0))
 DONT_NOTIFY_BIOME_WITHOUT_LIMITED = config.get("DONT_NOTIFY_BIOME_WITHOUT_LIMITED", "false").lower() == "true"
 
-print(f"[INFO] 使用中のDiscordWebhookURL: {WEBHOOK_URL}")
-print(f"[INFO] 使用中のプライベートサーバーURL: {PRIVATE_SERVER_URL}")
+print(f"[INFO] Using Discord Webhook URL: {WEBHOOK_URL}")
+print(f"[INFO] Using Private Server URL: {PRIVATE_SERVER_URL}")
 
 try:
     process = subprocess.Popen(adb_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 except Exception as e:
-    print(f"[INFO] ADBの開始に失敗しました、setup.shは実行しましたか？: {e}")
+    print(f"[ERROR] Failed to start ADB. Did you run setup.sh? Details: {e}")
     exit(1)
 
 last_state = None
@@ -101,24 +101,24 @@ def send_webhook(payload):
     try:
         response = requests.post(WEBHOOK_URL, json=payload)
     except Exception as e:
-        print(f"[ERROR] Webhookの送信に失敗しました: {e}")
+        print(f"[ERROR] Failed to send webhook: {e}")
 
 def get_aura_colour(rarity: int) -> int:
     if rarity >= 100_000_000:
-        return int("ff0000", 16)  # 赤
+        return int("ff0000", 16)  # Red
     elif rarity >= 10_000_000:
-        return int("8000ff", 16)  # 紫と青の中間
+        return int("8000ff", 16)  # Purple-blue
     elif rarity >= 1_000_000:
-        return int("ff69b4", 16)  # ピンク
+        return int("ff69b4", 16)  # Pink
     else:
-        return int("ffffff", 16)  # 白
+        return int("ffffff", 16)  # White
 
 try:
     for raw_line in process.stdout:
         try:
             line = raw_line.decode("utf-8", errors="replace").strip()
         except Exception as e:
-            print(f"[ERROR] 行のデコードに失敗しました: {e}")
+            print(f"[ERROR] Failed to decode line: {e}")
             continue
 
         if not line or "[BloxstrapRPC]" not in line:
@@ -140,7 +140,7 @@ try:
             large_image = data_field.get("largeImage") or {}
             biome = large_image.get("hoverText", "")
 
-            # オーラ装備通知
+            # Aura equipped notification
             if state and state != last_state:
                 state_lower = state.lower()
                 aura_info = AURA_DATA.get(state_lower, {})
@@ -167,7 +167,8 @@ try:
                     
                 send_webhook(payload_aura)
                 last_state = state
-            # バイオーム終了通知 ＆ 開始通知
+
+            # Biome end & start notifications
             if biome != last_biome:
                 if DONT_NOTIFY_BIOME_WITHOUT_LIMITED:
                     if biome not in ("GLITCHED", "DREAMSPACE"):
@@ -212,10 +213,10 @@ try:
                 last_biome = biome
 
         except Exception as e:
-            print(f"[ERROR] JSONの読み取りに失敗しました: {e}")
+            print(f"[ERROR] Failed to parse JSON: {e}")
 
 except KeyboardInterrupt:
-    print("\n[INFO] Ctrl+Cによって終了されました")
+    print("\n[INFO] Exiting due to Ctrl+C")
     process.terminate()
     process.wait()
 except Exception as e:
