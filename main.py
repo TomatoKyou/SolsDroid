@@ -144,7 +144,7 @@ try:
             if state and state != last_state:
                 state_lower = state.lower()
                 aura_info = AURA_DATA.get(state_lower, {})
-                rarity = aura_info.get("rarity", 0)
+                rarity = int(aura_info.get("rarity", 0))
                 aura_thumbnail = aura_info.get("img_url")
                 formatted_rarity = f"{rarity:,}"
                 embed_colour = get_aura_colour(rarity)
