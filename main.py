@@ -167,13 +167,16 @@ try:
                     
                 send_webhook(payload_aura)
                 last_state = state
+                
             # バイオーム終了通知 ＆ 開始通知
             if biome != last_biome:
                 if DONT_NOTIFY_BIOME_WITHOUT_LIMITED:
                     if biome not in ("GLITCHED", "DREAMSPACE"):
                         last_biome = biome
                         continue
-                    # Biome Ended
+
+                # Biome Ended
+                if last_biome:
                     biome_info_end = BIOME_DATA.get(last_biome, {})
                     embed_colour_end = int(biome_info_end.get("colour", "#ffffff").replace("#", ""), 16)
                     biome_end_time = int(time.time())
