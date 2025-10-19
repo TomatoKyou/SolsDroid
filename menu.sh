@@ -127,7 +127,7 @@ settings_menu() {
         ;;
       *)
         echo "無効な選択です"
-        sleep 1
+        read -p "Enterでメニューに戻ります。" dummy
         ;;
     esac
   done
@@ -158,7 +158,7 @@ env_settings_menu() {
         ;;
       *)
         echo "無効な選択です"
-        sleep 1
+        read -p "Enterでメニューに戻ります。" dummy
         ;;
     esac
   done
@@ -185,7 +185,7 @@ notify_settings_menu() {
         ;;
       *)
         echo "無効な選択です"
-        sleep 1
+        read -p "Enterでメニューに戻ります。" dummy
         ;;
     esac
   done
@@ -196,14 +196,14 @@ adb_pairing() {
     read -p "ペアリング用ポート番号を入力してください (例: 37451): " pair_port
     if [[ -z "$pair_port" ]]; then
         echo "ポート番号が入力されませんでした。キャンセルします。"
-        sleep 1
+        read -p "Enterでメニューに戻ります。" dummy
         return
     fi
     
     adb pair localhost:$pair_port
 
-    echo "[INFO] ペアリング処理が終了しました。メニューに戻ります..."
-    sleep 1
+    echo "[INFO] ペアリング処理が終了しました。"
+    read -p "Enterでメニューに戻ります。" dummy
 }
 
 main_menu() {
@@ -240,10 +240,12 @@ main_menu() {
         branch_output=$(git branch --show-current)
         if [ -z "$branch_output" ]; then
           echo "現在のブランチを取得できませんでした。"
+          read -p "Enterで終了します。" dummy
           exit 1
         fi
         git pull origin $branch_output
         echo "SolsDroidは最新状態になりました！"
+        read -p "Enterで続行します。" dummy
         ;;
       6)
         echo "終了します"
@@ -251,7 +253,7 @@ main_menu() {
         ;;
       *)
         echo "無効な選択です"
-        sleep 1
+        read -p "Enterでメニューに戻ります。" dummy
         ;;
     esac
   done
@@ -262,7 +264,7 @@ ps_url_setting() {
         read -p "新しいPrivateServerURLを入力してください（exitを入力してキャンセル）: " new_psurl
         if [[ "$new_psurl" == "exit" ]]; then
             echo "変更をキャンセルしました"
-            sleep 1
+            read -p "Enterでメニューに戻ります。" dummy
             return
         fi
         # 空入力は無視する場合
@@ -273,7 +275,7 @@ ps_url_setting() {
         PRIVATE_SERVER_URL="$new_psurl"
         save_config
         echo "変更を保存しました"
-        sleep 1
+        read -p "Enterでメニューに戻ります。" dummy
         return
     done
 }
@@ -283,7 +285,7 @@ webhook_url_setting() {
         read -p "新しいDiscordWebhookURLを入力してください（exitを入力してキャンセル）: " new_webhookurl
         if [[ "$new_webhookurl" == "exit" ]]; then
             echo "変更をキャンセルしました"
-            sleep 1
+            read -p "Enterでメニューに戻ります。" dummy
             return
         fi
         # 空入力は無視する場合
@@ -294,7 +296,7 @@ webhook_url_setting() {
         WEBHOOK_URL="$new_webhookurl"
         save_config
         echo "変更を保存しました"
-        sleep 1
+        read -p "Enterでメニューに戻ります。" dummy
         return
     done
 }
@@ -304,7 +306,7 @@ user_id_setting() {
         read -p "新しいDiscordUserIDを入力してください（exitを入力してキャンセル）: " new_userid
         if [[ "$new_userid" == "exit" ]]; then
             echo "変更をキャンセルしました"
-            sleep 1
+            read -p "Enterでメニューに戻ります。" dummy
             return
         fi
         # 空入力は無視する場合
@@ -315,7 +317,7 @@ user_id_setting() {
         DISCORD_USER_ID="$new_userid"
         save_config
         echo "変更を保存しました"
-        sleep 1
+        read -p "Enterでメニューに戻ります。" dummy
         return
     done
 }
@@ -325,7 +327,7 @@ min_notify_setting() {
         read -p "オーラ装備通知を送信するオーラの最低値を入力してください。（exitでキャンセル）: " new_auramin
         if [[ "$new_auramin" == "exit" ]]; then
             echo "変更をキャンセルしました"
-            sleep 1
+            read -p "Enterでメニューに戻ります。" dummy
             return
         fi
         if [[ -z "$new_auramin" ]]; then
@@ -339,7 +341,7 @@ min_notify_setting() {
         MIN_NOTIFY_RARITY="$new_auramin"
         save_config
         echo "変更を保存しました"
-        sleep 1
+        read -p "Enterでメニューに戻ります。" dummy
         return
     done
 }
@@ -356,19 +358,19 @@ biome_notify_setting() {
                 DONT_NOTIFY_BIOME_WITHOUT_LIMITED=true
                 save_config
                 echo "変更を保存しました: 有効"
-                sleep 1
+                read -p "Enterでメニューに戻ります。" dummy
                 return
                 ;;
             2)
                 DONT_NOTIFY_BIOME_WITHOUT_LIMITED=false
                 save_config
                 echo "変更を保存しました: 無効"
-                sleep 1
+                read -p "Enterでメニューに戻ります。" dummy
                 return
                 ;;
             3)
                 echo "変更をキャンセルしました"
-                sleep 1
+                read -p "Enterでメニューに戻ります。" dummy
                 return
                 ;;
             *)
