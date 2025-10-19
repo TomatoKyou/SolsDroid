@@ -203,7 +203,7 @@ main_menu() {
           echo "Failed to get current branch."
           exit 1
         fi
-        git pull origin "$branch_output"
+        git pull origin $branch_output
         echo "SolsDroid is now up to date!"
         ;;
       6)
