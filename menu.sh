@@ -242,7 +242,7 @@ main_menu() {
           echo "現在のブランチを取得できませんでした。"
           exit 1
         fi
-        git pull origin "$branch_output"
+        git pull origin $branch_output
         echo "SolsDroidは最新状態になりました！"
         ;;
       6)
