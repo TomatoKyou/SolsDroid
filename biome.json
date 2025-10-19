@@ -38,5 +38,17 @@
     "GLITCHED": { 
         "colour": "#64fc64",
         "img_url": "https://raw.githubusercontent.com/bazthedev/SolsScope/refs/heads/main/img/biome/GLITCHED.png"
+    },
+    "PUMPKIN MOON": {
+        "colour": "#d55f09",
+        "img_url": "https://raw.githubusercontent.com/bazthedev/SolsScope/refs/heads/main/img/biome/PUMPKIN_MOON.png"
+    },
+    "GRAVEYARD": {
+        "colour": "#444d5c",
+        "img_url": "https://raw.githubusercontent.com/bazthedev/SolsScope/refs/heads/main/img/biome/GRAVEYARD.png"
+    },
+    "BLOOD RAIN": {
+        "colour": "#ff0000",
+        "img_url": "https://raw.githubusercontent.com/bazthedev/SolsScope/refs/heads/main/img/biome/BLOOD_RAIN.png"
     }
 }
